@@ -16,6 +16,7 @@ public:
 	size_t getHeight();
 	color get(size_t x, size_t y);
 	void set(size_t x, size_t y, color c);
+	void savePPM(char * path);
 private:
 	size_t width;
 	size_t height;

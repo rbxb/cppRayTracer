@@ -17,6 +17,11 @@ v3 pointLight::dir(v3 p)
 	return normalize(orig - p);
 }
 
+float pointLight::d(v3 p)
+{
+	return mag(orig - p);
+}
+
 v3 pointLight::getColor()
 {
 	return color;
@@ -37,6 +42,11 @@ directionalLight::directionalLight(v3 dir__, v3 color_)
 v3 directionalLight::dir(v3 p)
 {
 	return dir_;
+}
+
+float directionalLight::d(v3 p)
+{
+	return -1;
 }
 
 v3 directionalLight::getColor()

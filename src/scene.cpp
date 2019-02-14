@@ -47,37 +47,30 @@ v3 scene::cast(v3 orig, v3 dir, char count, float retained)
 	if (closestObject != nullptr) {
 		orig = dir * closestDistance + orig;
 		hit h = closestObject->at(orig);
-
-		//reflection
 		v3 hover = h.surfacen * 0.001f + orig;
-		v3 refld = reflect(dir, h.mappedn);
-		//fresnel
-		float albedo = std::min(h.albedo + h.albedo * fresnel(dir, refld), 1.0f);
-		//float albedo = h.albedo;
-		v3 reflColor = cast(hover, refld, count, retained * albedo);
-
-		//lighting
 		v3 lightColor = lighting(hover, h.mappedn);
 
-		//combine lighting and reflection
-		reflColor = min(reflColor * albedo + lightColor  * (1 - albedo), 1);
-
-		//transparency
-		/*v3 sink;
-		if (dir * h.surfacen < 0) {
-			sink = -h.surfacen * 0.001f + orig;
+		if (h.albedo > 0) {
+			v3 refld = reflect(dir, h.mappedn);
+			float albedo = std::min(h.albedo + h.albedo * fresnel(dir, refld), 1.0f);
+			v3 reflColor = cast(hover, refld, count, retained * albedo);
+			lightColor = min(reflColor * albedo + lightColor  * (1 - albedo), 1);
 		}
-		else {
-			sink = h.surfacen * 0.001f + orig;
+
+		if (h.opacity < 1) {
+			v3 sink;
+			if (dir * h.surfacen < 0) {
+				sink = -h.surfacen * 0.001f + orig;
+			}
+			else {
+				sink = h.surfacen * 0.001f + orig;
+			}
+			v3 refrd = refract(dir, h.mappedn, h.refraction);
+			v3 refrColor = cast(sink, refrd, count, retained * (1 - h.opacity));
+			lightColor = min(lightColor * h.opacity + refrColor * (1 - h.opacity), 1);
 		}
-		v3 refrd = refract(dir, h.mappedn, h.refraction);
-		v3 refrColor = cast(sink, refrd, count, retained * (1 - h.opacity));
 
-		//combine reflect and transparency
-		reflColor = min(reflColor * h.opacity + refrColor * (1 - h.opacity), 1);*/
-
-		//combine all with diffuse
-		c = c + multiply(h.c, reflColor);
+		c = c + multiply(h.c, lightColor);
 
 		//fog
 		float fog = std::min(closestDistance / fogDistance, 1.0f);
@@ -93,7 +86,8 @@ v3 scene::lighting(v3 orig, v3 dir)
 	v3 c = ambient;
 	for (light * l : lights) {
 		v3 ldir = l->dir(orig);
-		if (!simpleCast(orig, ldir)) {
+		float ld = l->d(orig);
+		if (!simpleCast(orig, ldir, ld)) {
 			float m = std::max(dir * ldir, 0.0f);
 			c = c + l->getColor() * m;
 		}
@@ -101,10 +95,11 @@ v3 scene::lighting(v3 orig, v3 dir)
 	return min(c, 1);
 }
 
-bool scene::simpleCast(v3 orig, v3 dir)
+bool scene::simpleCast(v3 orig, v3 dir, float ld)
 {
 	for (object * o : objects) {
-		if (o->intersect(orig, dir) > 0) {
+		float d = o->intersect(orig, dir);
+		if (d > 0 && (ld < 0 || d < ld)) {
 			return true;
 		}
 	}

@@ -5,7 +5,6 @@
 #include "render.h"
 #include "view.h"
 #include <vector>
-#include <fstream>
 #include "sphere.h"
 #include "plane.h"
 #include "light.h"
@@ -34,14 +33,5 @@ int main() {
 
 	render(sn, cvs, 10);
 
-	std::ofstream ofs;
-	ofs.open("./ppm/out.ppm", std::ios::binary);
-	ofs << "P6\n" << cvs->getWidth() << " " << cvs->getHeight() << "\n255\n";
-	for (size_t y = 0; y < cvs->getHeight(); y++) {
-		for (size_t x = 0; x < cvs->getWidth(); x++) {
-			color c = cvs->get(x, y);
-			ofs << c.r << c.g << c.b;
-		}
-	}
-	ofs.close();
+	cvs->savePPM("./ppm/out.ppm");
 }

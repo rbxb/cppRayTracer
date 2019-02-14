@@ -1,4 +1,5 @@
 #include "canvas.h"
+#include <fstream>
 #include <algorithm>
 
 v3 color::toV3(color c)
@@ -60,4 +61,18 @@ void canvas::set(size_t x, size_t y, color c)
 	data[p + 0] = c.r;
 	data[p + 1] = c.g;
 	data[p + 2] = c.b;
+}
+
+void canvas::savePPM(char * path)
+{
+	std::ofstream ofs;
+	ofs.open(path, std::ios::binary);
+	ofs << "P6\n" << width << " " << height << "\n255\n";
+	for (size_t y = 0; y < height; y++) {
+		for (size_t x = 0; x < width; x++) {
+			color c = get(x, y);
+			ofs << c.r << c.g << c.b;
+		}
+	}
+	ofs.close();
 }

@@ -13,7 +13,7 @@ public:
 	view getView();
 	v3 cast(v3 orig, v3 dir, char count, float retained);
 	v3 lighting(v3 orig, v3 dir);
-	bool simpleCast(v3 orig, v3 dir);
+	bool simpleCast(v3 orig, v3 dir, float ld);
 private:
 	view v;
 	std::vector<object*> objects;
